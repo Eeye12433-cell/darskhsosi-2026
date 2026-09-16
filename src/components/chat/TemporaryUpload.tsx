@@ -140,7 +140,7 @@ const TemporaryUpload: React.FC<TemporaryUploadProps> = ({
               {file.preview ? (
                 <img
                   src={file.preview}
-                  alt={file.name}
+                  alt=""
                   className="w-5 h-5 rounded object-cover"
                 />
               ) : (

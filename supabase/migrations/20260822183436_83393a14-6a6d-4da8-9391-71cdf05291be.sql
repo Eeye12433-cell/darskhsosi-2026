@@ -1,0 +1,2 @@
+ALTER TABLE public.conversations ADD COLUMN IF NOT EXISTS subject text NOT NULL DEFAULT 'general';
+CREATE INDEX IF NOT EXISTS conversations_user_feature_subject_idx ON public.conversations (user_id, feature_id, subject, updated_at DESC);

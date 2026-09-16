@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { sanitizeApiBaseUrl } from "../_shared/safeApiUrl.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -53,20 +54,20 @@ serve(async (req) => {
     const serviceClient = createClient(supabaseUrl, supabaseServiceKey);
 
     const { data: profile } = await serviceClient
-      .from('profiles')
+      .from('user_api_credentials')
       .select('gemini_api_key, openai_api_key, custom_api_key, custom_base_url, custom_model')
       .eq('user_id', userId)
-      .single();
+      .maybeSingle();
 
     let apiKey = Deno.env.get('LOVABLE_API_KEY');
 
     let apiBaseUrl = 'https://ai.gateway.lovable.dev/v1/chat/completions';
-    let model = 'google/gemini-1.5-pro';
+    let model = 'google/gemini-3-flash-preview';
 
     // Priority 1: User's Custom key
     if (profile?.custom_api_key) {
       apiKey = profile.custom_api_key;
-      apiBaseUrl = profile.custom_base_url || 'https://api.openai.com/v1/chat/completions';
+      apiBaseUrl = sanitizeApiBaseUrl(profile.custom_base_url, 'https://api.openai.com/v1/chat/completions');
       model = profile.custom_model || 'gpt-4o-mini';
       console.log('Using personal Custom API key for analysis');
     }
@@ -74,7 +75,7 @@ serve(async (req) => {
     else if (profile?.gemini_api_key) {
       apiKey = profile.gemini_api_key;
       apiBaseUrl = 'https://generativelanguage.googleapis.com/v1beta/chat/completions';
-      model = 'gemini-1.5-pro';
+      model = 'gemini-2.0-flash';
       console.log('Using user provided Gemini API key for analysis');
     }
     // Priority 3: User's OpenAI key

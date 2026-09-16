@@ -34,7 +34,7 @@ serve(async (req) => {
       });
     }
 
-    const { content, title, language, count } = await req.json();
+    const { content, title, language, count, subject, subjectName } = await req.json();
     if (!content) {
       return new Response(JSON.stringify({ error: "Content is required" }), {
         status: 400,
@@ -50,9 +50,14 @@ serve(async (req) => {
     const cardCount = count || 10;
     const lang = language || "ar";
 
-    const systemPrompt = lang === "ar"
+    const subjectLabel = typeof subjectName === "string" && subjectName ? subjectName : (subject || "general");
+    const subjectLine = lang === "ar"
+      ? `\nالمادة الدراسية الحالية للمتعلم: ${subjectLabel}. استخدم مصطلحات وأمثلة من هذه المادة، وصُغ البطاقات بما يخدمها.`
+      : `\nThe learner's current subject is: ${subjectLabel}. Use terminology and examples from this subject.`;
+
+    const systemPrompt = (lang === "ar"
       ? `أنت مساعد تعليمي متخصص في إنشاء بطاقات تعليمية (Flashcards). قم بإنشاء ${cardCount} بطاقة تعليمية من المحتوى المقدم. كل بطاقة يجب أن تحتوي على سؤال وجواب. ركز على المفاهيم الأساسية والمصطلحات المهمة.`
-      : `You are an educational assistant specialized in creating flashcards. Create ${cardCount} flashcards from the provided content. Each card should have a question and answer. Focus on key concepts and important terms.`;
+      : `You are an educational assistant specialized in creating flashcards. Create ${cardCount} flashcards from the provided content. Each card should have a question and answer. Focus on key concepts and important terms.`) + subjectLine;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

@@ -121,7 +121,16 @@ const VideoLearning: React.FC<VideoLearningProps> = ({ language }) => {
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to fetch');
+      if (!response.ok) {
+        if (response.status === 429) {
+          toast.error(language === 'ar' ? 'تم تجاوز الحد المسموح، حاول لاحقاً' : 'Rate limit exceeded, try again later');
+        } else if (response.status === 402) {
+          toast.error(language === 'ar' ? 'يجب إضافة رصيد للحساب' : 'Please add credits to your account');
+        } else {
+          toast.error(language === 'ar' ? 'حدث خطأ في الخدمة' : 'Service error occurred');
+        }
+        return;
+      }
 
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
@@ -160,6 +169,7 @@ const VideoLearning: React.FC<VideoLearningProps> = ({ language }) => {
       }
     } catch (error) {
       console.error('Error sending message:', error);
+      toast.error(language === 'ar' ? 'تعذر الاتصال بالخدمة' : 'Could not reach the service');
     } finally {
       setIsLoading(false);
       setStreamingContent('');
@@ -167,8 +177,8 @@ const VideoLearning: React.FC<VideoLearningProps> = ({ language }) => {
   };
 
   return (
-    <div className="h-full flex flex-col p-3 sm:p-4 md:p-6 gsap-theme-animate">
-      <div className="flex items-center justify-between mb-4 sm:mb-6">
+    <div className="h-full min-h-0 flex flex-col overflow-hidden p-3 sm:p-4 md:p-6 gsap-theme-animate">
+      <div className="relative shrink-0 flex items-center justify-between mb-4 sm:mb-6">
         <div className="flex-1 text-center">
           <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 rounded-full bg-primary/10 flex items-center justify-center">
             <Video className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
@@ -205,7 +215,7 @@ const VideoLearning: React.FC<VideoLearningProps> = ({ language }) => {
           </div>
         </Card>
       ) : (
-        <div className="flex-1 flex flex-col gap-3 sm:gap-4 overflow-hidden">
+        <div className="flex-1 min-h-0 flex flex-col gap-3 sm:gap-4 overflow-hidden">
           <Card className="overflow-hidden shrink-0">
             <div className="aspect-video">
               <iframe
@@ -220,8 +230,8 @@ const VideoLearning: React.FC<VideoLearningProps> = ({ language }) => {
             </div>
           </Card>
 
-          <Card className="flex-1 flex flex-col overflow-hidden min-h-[200px]">
-            <ScrollArea className="flex-1 p-3 sm:p-4">
+          <Card className="flex-1 min-h-[220px] flex flex-col overflow-hidden">
+            <ScrollArea className="flex-1 min-h-0 basis-0 p-3 sm:p-4">
               {messages.length === 0 && !streamingContent && (
                 <div className="flex gap-2 sm:gap-3 mb-3 sm:mb-4">
                   <Avatar className="w-7 h-7 sm:w-8 sm:h-8 shrink-0">
@@ -256,7 +266,7 @@ const VideoLearning: React.FC<VideoLearningProps> = ({ language }) => {
               )}
             </ScrollArea>
 
-            <div className="p-2 sm:p-4 border-t">
+            <div className="p-2 sm:p-4 border-t shrink-0">
               <div className="flex gap-1.5 sm:gap-2">
                 <Textarea
                   value={input}

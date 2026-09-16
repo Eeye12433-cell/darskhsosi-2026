@@ -9,22 +9,26 @@ export interface ChatMessage {
   timestamp: Date;
 }
 
-export const useChatHistory = (featureId: string) => {
+export const useChatHistory = (featureId: string, conversationId?: string | null) => {
   const { user } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Load messages from database
   const loadMessages = useCallback(async () => {
-    if (!user) { setLoading(false); return; }
+    if (!user || !conversationId) { 
+      setMessages([]);
+      setLoading(false); 
+      return; 
+    }
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('chat_messages')
         .select('*')
         .eq('user_id', user.id)
+        .eq('conversation_id', conversationId)
         .order('created_at', { ascending: true })
-        .limit(100);
+        .limit(200);
 
       if (error) {
         console.error('Error loading chat history:', error);
@@ -32,7 +36,7 @@ export const useChatHistory = (featureId: string) => {
       }
 
       if (data) {
-        setMessages(data.map(m => ({
+        setMessages(data.map((m: any) => ({
           id: m.id,
           role: m.role as 'user' | 'assistant',
           content: m.content,
@@ -44,43 +48,39 @@ export const useChatHistory = (featureId: string) => {
     } finally {
       setLoading(false);
     }
-  }, [user, featureId]);
+  }, [user, conversationId]);
 
   useEffect(() => {
     loadMessages();
   }, [loadMessages]);
 
-  // Save a single message to database
   const saveMessage = useCallback(async (message: ChatMessage) => {
-    if (!user) return;
+    if (!user || !conversationId) return;
     try {
-      await supabase.from('chat_messages').insert({
+      await (supabase as any).from('chat_messages').insert({
         user_id: user.id,
         role: message.role,
         content: message.content,
+        conversation_id: conversationId,
       });
+      // Update conversation's updated_at
+      await (supabase as any)
+        .from('conversations')
+        .update({ updated_at: new Date().toISOString() })
+        .eq('id', conversationId);
     } catch (err) {
       console.error('Failed to save message:', err);
     }
-  }, [user, featureId]);
+  }, [user, conversationId]);
 
-  // Add message locally and persist
   const addMessage = useCallback((message: ChatMessage) => {
     setMessages(prev => [...prev, message]);
     saveMessage(message);
   }, [saveMessage]);
 
-  // Clear chat history
   const clearHistory = useCallback(async () => {
-    if (!user) return;
-    try {
-      // We can't delete with current RLS (no DELETE policy on chat_messages)
-      // So just clear local state
-      setMessages([]);
-    } catch (err) {
-      console.error('Failed to clear history:', err);
-    }
-  }, [user]);
+    setMessages([]);
+  }, []);
 
   return { messages, setMessages, addMessage, loading, clearHistory, loadMessages };
 };

@@ -24,11 +24,6 @@ export interface Profile {
   knowledge_ratio: number | null;
   speaking_style: 'formal_ar' | 'colloquial_ar' | 'en' | 'mixed' | null;
   ai_persona: 'teacher' | 'scientist' | 'examiner' | 'analyzer' | null;
-  openai_api_key: string | null;
-  gemini_api_key: string | null;
-  custom_api_key: string | null;
-  custom_base_url: string | null;
-  custom_model: string | null;
   created_at: string;
   updated_at: string;
 }

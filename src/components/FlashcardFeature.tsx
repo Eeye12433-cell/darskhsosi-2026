@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useUploadedMaterials } from '@/hooks/useUploadedMaterials';
 import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
+import { getSubjectName } from '@/utils/subjectColors';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -29,6 +31,7 @@ interface FlashcardFeatureProps {
 
 const FlashcardFeature: React.FC<FlashcardFeatureProps> = ({ language }) => {
   const { user } = useAuth();
+  const { profile } = useProfile();
   const { materials } = useUploadedMaterials();
   const [sets, setSets] = useState<FlashcardSet[]>([]);
   const [activeSet, setActiveSet] = useState<FlashcardSet | null>(null);
@@ -84,6 +87,8 @@ const FlashcardFeature: React.FC<FlashcardFeatureProps> = ({ language }) => {
           title: material?.file_name || t('بطاقات مخصصة', 'Custom Flashcards'),
           language,
           count: parseInt(cardCount),
+          subject: profile?.subject || 'general',
+          subjectName: getSubjectName(profile?.subject || 'general', language),
         },
       });
 

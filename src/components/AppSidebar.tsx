@@ -2,7 +2,7 @@ import React, { useLayoutEffect, useRef } from 'react';
 import { Profile } from '@/hooks/useProfile';
 import { SidebarFeature } from './LearningPlatform';
 import { cn } from '@/lib/utils';
-import { GraduationCap, Upload, Network, Lightbulb, FileText, Users, Video, ClipboardCheck, TrendingUp, ChevronLeft, ChevronRight, LogOut, Link, Calendar, Rocket, Heart, User, Presentation, Layers, Puzzle } from 'lucide-react';
+import { GraduationCap, Upload, Network, Lightbulb, FileText, Users, Video, ClipboardCheck, TrendingUp, ChevronLeft, ChevronRight, LogOut, Link, Calendar, Rocket, Heart, User, Presentation, Layers, Puzzle , ShieldCheck, HelpCircle, Library} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -47,6 +47,12 @@ export const features: {
   id: 'test',
   icon: ClipboardCheck
 }, {
+  id: 'questionbank',
+  icon: HelpCircle
+}, {
+  id: 'moe-library',
+  icon: Library
+}, {
   id: 'progress',
   icon: TrendingUp
 }, {
@@ -67,6 +73,9 @@ export const features: {
 }, {
   id: 'kids-games',
   icon: Puzzle
+}, {
+  id: 'parent-link',
+  icon: ShieldCheck
 }, {
   id: 'profile',
   icon: User
@@ -135,6 +144,8 @@ const AppSidebar: React.FC<AppSidebarProps> = ({
         'sidebar.scientist': 'حديث مع عالم',
         'sidebar.video': 'التعلم بالفيديو',
         'sidebar.test': 'اختبار الفهم',
+        'sidebar.questionbank': 'بنك الأسئلة',
+        'sidebar.moe-library': 'مكتبة كتب الوزارة',
         'sidebar.progress': 'تقدم التعلم',
         'sidebar.weblink': 'شرح الروابط',
         'sidebar.studyplan': 'خطة دراسية',
@@ -142,6 +153,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({
         'sidebar.classroom': 'القاعة الافتراضية',
         'sidebar.flashcards': 'البطاقات التعليمية',
         'sidebar.kids-games': 'ألعاب تعليمية للأطفال',
+        'sidebar.parent-link': 'ربط ولي الأمر',
         'sidebar.profile': 'الملف الشخصي',
         'sidebar.about': 'عن التطبيق',
         'action.signout': 'تسجيل الخروج'
@@ -156,6 +168,8 @@ const AppSidebar: React.FC<AppSidebarProps> = ({
         'sidebar.scientist': 'Talk to Scientist',
         'sidebar.video': 'Learn with Video',
         'sidebar.test': 'Understanding Test',
+        'sidebar.questionbank': 'Question Bank',
+        'sidebar.moe-library': 'Ministry Library',
         'sidebar.progress': 'Learning Progress',
         'sidebar.weblink': 'Explain Links',
         'sidebar.studyplan': 'Study Plan',
@@ -163,6 +177,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({
         'sidebar.classroom': 'Virtual Classroom',
         'sidebar.flashcards': 'Flashcards',
         'sidebar.kids-games': 'Kids Learning Games',
+        'sidebar.parent-link': 'Parent Link',
         'sidebar.profile': 'Profile',
         'sidebar.about': 'About',
         'action.signout': 'Sign Out'
@@ -270,6 +285,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({
               <Button
                 variant="ghost"
                 size="icon"
+                aria-label="Sign out"
                 className={cn('shrink-0', activeFeature === 'profile' ? 'text-white hover:bg-white/20' : 'text-sidebar-foreground hover:bg-sidebar-accent')}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -284,7 +300,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({
         </div>
         {collapsed && <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="w-full mt-2 text-sidebar-foreground hover:bg-sidebar-accent" onClick={onSignOut}>
+            <Button variant="ghost" size="icon" aria-label="Sign out" className="w-full mt-2 text-sidebar-foreground hover:bg-sidebar-accent" onClick={onSignOut}>
               <LogOut className="w-4 h-4" />
             </Button>
           </TooltipTrigger>

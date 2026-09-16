@@ -1,7 +1,12 @@
 import React, { useLayoutEffect, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Heart, Lightbulb, Users, GraduationCap, Sparkles } from 'lucide-react';
+import {
+    Heart, Lightbulb, Users, GraduationCap, Sparkles,
+    Bot, Upload, Network, BookOpen, FileText, FlaskConical,
+    Video, ClipboardCheck, TrendingUp, Link2, CalendarClock,
+    Layers, Presentation, Gamepad2, Globe, ShieldCheck, Rocket
+} from 'lucide-react';
 import gsap from 'gsap';
 
 interface AboutPageProps {
@@ -47,6 +52,26 @@ const AboutPage: React.FC<AboutPageProps> = ({ language }) => {
             {children}
         </div>
     );
+
+    const features = [
+        { icon: Bot, color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-100 dark:bg-indigo-900/30', ar: 'المعلم الذكي', arDesc: 'مساعد تعليمي بالذكاء الاصطناعي يشرح ويجيب على أسئلتك بأسلوب مبسّط وحواري على مدار الساعة.', en: 'AI Teacher', enDesc: 'A 24/7 AI tutor that explains and answers your questions in a simple, conversational way.' },
+        { icon: Upload, color: 'text-sky-600 dark:text-sky-400', bg: 'bg-sky-100 dark:bg-sky-900/30', ar: 'رفع المواد', arDesc: 'ارفع ملفاتك ومستنداتك (PDF، صور، نصوص) ليتعلم منها المعلم الذكي ويشرحها لك.', en: 'Upload Materials', enDesc: 'Upload your files (PDF, images, text) so the AI can learn from and explain them to you.' },
+        { icon: Network, color: 'text-cyan-600 dark:text-cyan-400', bg: 'bg-cyan-100 dark:bg-cyan-900/30', ar: 'الخرائط الذهنية', arDesc: 'حوّل أي موضوع إلى خريطة ذهنية تفاعلية قابلة للتكبير والتصدير كصورة لتنظيم أفكارك.', en: 'Mind Maps', enDesc: 'Turn any topic into an interactive mind map you can zoom and export as an image.' },
+        { icon: BookOpen, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-100 dark:bg-emerald-900/30', ar: 'تبسيط المفاهيم', arDesc: 'اشرح لي كأنني في الخامسة — تبسيط المفاهيم الصعبة إلى كلمات سهلة وأمثلة قريبة.', en: 'Simplify Concepts', enDesc: 'Explain Like I\'m 5 — breaks down complex ideas into easy words and relatable examples.' },
+        { icon: FileText, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-100 dark:bg-amber-900/30', ar: 'الملخصات', arDesc: 'ملخصات ذكية وسريعة لأي درس أو مادة لتراجع أهم النقاط في دقائق.', en: 'Summaries', enDesc: 'Smart, fast summaries of any lesson so you can review the key points in minutes.' },
+        { icon: FlaskConical, color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-100 dark:bg-purple-900/30', ar: 'حوار مع العلماء', arDesc: 'تحدّث مع شخصيات علمية وتاريخية بأسلوب تمثيلي ممتع يجعل التعلم مغامرة.', en: 'Scientist Roleplay', enDesc: 'Chat with scientific & historical figures in a fun roleplay that turns learning into an adventure.' },
+        { icon: Video, color: 'text-red-600 dark:text-red-400', bg: 'bg-red-100 dark:bg-red-900/30', ar: 'التعلم بالفيديو', arDesc: 'شرح مدعوم بمقاطع يوتيوب تعليمية مختارة بعناية حسب موضوعك.', en: 'Video Learning', enDesc: 'Learning enhanced with carefully selected YouTube videos relevant to your topic.' },
+        { icon: ClipboardCheck, color: 'text-teal-600 dark:text-teal-400', bg: 'bg-teal-100 dark:bg-teal-900/30', ar: 'اختبارات الفهم', arDesc: 'اختبارات اختيار من متعدد وأسئلة مقالية مع إجابات نموذجية لقياس استيعابك.', en: 'Understanding Tests', enDesc: 'MCQ and written quizzes with model answers to measure how well you understood.' },
+        { icon: Layers, color: 'text-fuchsia-600 dark:text-fuchsia-400', bg: 'bg-fuchsia-100 dark:bg-fuchsia-900/30', ar: 'البطاقات التعليمية', arDesc: 'بطاقات مراجعة (Flashcards) تفاعلية تولّد تلقائياً لتثبيت المعلومات في ذاكرتك.', en: 'Flashcards', enDesc: 'Auto-generated interactive flashcards to lock information into your memory.' },
+        { icon: TrendingUp, color: 'text-green-600 dark:text-green-400', bg: 'bg-green-100 dark:bg-green-900/30', ar: 'متابعة التقدّم', arDesc: 'لوحة تتابع إنجازك ونشاطك التعليمي وتحفزك على الاستمرار.', en: 'Progress Tracking', enDesc: 'A dashboard that tracks your achievements and keeps you motivated.' },
+        { icon: Link2, color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-100 dark:bg-blue-900/30', ar: 'شرح الروابط', arDesc: 'الصق أي رابط ويقوم النظام بقراءته وشرح محتواه لك بشكل مبسّط.', en: 'Web Link Explainer', enDesc: 'Paste any link and the system reads and explains its content in simple terms.' },
+        { icon: CalendarClock, color: 'text-orange-600 dark:text-orange-400', bg: 'bg-orange-100 dark:bg-orange-900/30', ar: 'خطة الدراسة', arDesc: 'مولّد خطط دراسية مخصصة حسب أهدافك ووقتك المتاح لتنظيم رحلتك.', en: 'Study Plan', enDesc: 'A personalized study-plan generator based on your goals and available time.' },
+        { icon: Rocket, color: 'text-pink-600 dark:text-pink-400', bg: 'bg-pink-100 dark:bg-pink-900/30', ar: 'اقتراح المشاريع', arDesc: 'أفكار مشاريع عملية وإبداعية مقترحة لتطبيق ما تعلمته على أرض الواقع.', en: 'Project Suggestions', enDesc: 'Practical, creative project ideas to apply what you\'ve learned in real life.' },
+        { icon: Presentation, color: 'text-violet-600 dark:text-violet-400', bg: 'bg-violet-100 dark:bg-violet-900/30', ar: 'القاعة الافتراضية', arDesc: 'أنشئ وأدر جلسات مباشرة عبر Zoom وGoogle Meet وTeams وشاركها بسهولة.', en: 'Virtual Classroom', enDesc: 'Create and manage live sessions over Zoom, Google Meet & Teams and share them easily.' },
+        { icon: Gamepad2, color: 'text-lime-600 dark:text-lime-400', bg: 'bg-lime-100 dark:bg-lime-900/30', ar: 'ألعاب تعليمية للأطفال', arDesc: 'ألعاب وبازل تفاعلية للجمع والطرح والحروف تجعل الأطفال يتعلمون وهم يلعبون ويلوّنون.', en: 'Kids Learning Games', enDesc: 'Interactive puzzles for math & letters that let kids learn while they play and color.' },
+        { icon: Globe, color: 'text-slate-600 dark:text-slate-300', bg: 'bg-slate-100 dark:bg-slate-800', ar: 'دعم لغتين كامل', arDesc: 'واجهة ومحتوى بالعربية والإنجليزية مع دعم كامل للكتابة من اليمين لليسار.', en: 'Full Bilingual Support', enDesc: 'Full Arabic & English interface and content with complete right-to-left support.' },
+        { icon: ShieldCheck, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-100 dark:bg-emerald-900/30', ar: 'حساب آمن ومحادثات محفوظة', arDesc: 'تسجيل دخول آمن مع حفظ محادثاتك المنفصلة لكل ميزة والعودة إليها في أي وقت.', en: 'Secure Account & Saved Chats', enDesc: 'Secure sign-in with separate saved conversations per feature you can return to anytime.' },
+    ];
 
     return (
         <div
@@ -133,6 +158,46 @@ const AboutPage: React.FC<AboutPageProps> = ({ language }) => {
                             </p>
                         </Card>
                     </div>
+
+                    {/* Full Features Showcase (Marketing) */}
+                    <div className="about-hero-animate mb-6 text-center space-y-3">
+                        <div className="inline-flex items-center justify-center p-3 rounded-full bg-primary/10">
+                            <Sparkles className="w-7 h-7 text-primary" />
+                        </div>
+                        <h2 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white">
+                            {t('كل ما يقدمه التطبيق', 'Everything the App Offers')}
+                        </h2>
+                        <p className="text-base md:text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto font-medium">
+                            {t(
+                                'منظومة تعليمية متكاملة مدعومة بالذكاء الاصطناعي تجمع كل ما تحتاجه للتعلم والمراجعة والإبداع في مكان واحد.',
+                                'A complete AI-powered learning ecosystem bringing everything you need to learn, review and create in one place.'
+                            )}
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-12">
+                        {features.map((f, idx) => {
+                            const Icon = f.icon;
+                            return (
+                                <Card
+                                    key={idx}
+                                    className="flex flex-col h-full p-6 border-none shadow-md bg-white dark:bg-slate-900 ring-1 ring-slate-200 dark:ring-slate-800 rounded-2xl transition-all hover:-translate-y-1 hover:shadow-xl text-start"
+                                >
+                                    <div className={`w-12 h-12 rounded-xl ${f.bg} flex items-center justify-center mb-4 shadow-sm`}>
+                                        <Icon className={`w-6 h-6 ${f.color}`} />
+                                    </div>
+                                    <h3 className="text-lg font-black text-slate-900 dark:text-white mb-2 text-start">
+                                        {t(f.ar, f.en)}
+                                    </h3>
+                                    <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium text-start">
+                                        {t(f.arDesc, f.enDesc)}
+                                    </p>
+                                </Card>
+                            );
+                        })}
+                    </div>
+
+
 
                     {/* Personal Message */}
                     <div className="about-hero-animate mb-8">

@@ -26,14 +26,14 @@ export const useVirtualMeetings = () => {
     const fetchMeetings = async () => {
         try {
             setLoading(true);
-            const { data, error } = await supabase
+            const { data, error } = await (supabase as any)
                 .from('virtual_meetings')
                 .select('*')
                 .eq('is_active', true)
                 .order('start_time', { ascending: true });
 
             if (error) throw error;
-            setMeetings(data || []);
+            setMeetings((data as VirtualMeeting[]) || []);
         } catch (error) {
             console.error('Error fetching meetings:', error);
         } finally {
@@ -51,7 +51,7 @@ export const useVirtualMeetings = () => {
         if (!user) return { error: new Error('Not authenticated') };
 
         try {
-            const { data, error } = await supabase
+            const { data, error } = await (supabase as any)
                 .from('virtual_meetings')
                 .insert({
                     user_id: user.id,
@@ -61,7 +61,7 @@ export const useVirtualMeetings = () => {
                 .single();
 
             if (error) throw error;
-            setMeetings(prev => [...prev, data]);
+            setMeetings(prev => [...prev, data as VirtualMeeting]);
             return { data, error: null };
         } catch (error) {
             console.error('Error creating meeting:', error);
@@ -73,7 +73,7 @@ export const useVirtualMeetings = () => {
         if (!user) return { error: new Error('Not authenticated') };
 
         try {
-            const { error } = await supabase
+            const { error } = await (supabase as any)
                 .from('virtual_meetings')
                 .update({ is_active: false })
                 .eq('id', id)

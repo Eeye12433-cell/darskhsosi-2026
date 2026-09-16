@@ -121,39 +121,30 @@ const MindMapParser: React.FC<MindMapParserProps> = ({ content, language }) => {
     setIsExportingImage(true);
 
     try {
-      const html2canvas = (await import('html2canvas')).default;
+      const { toPng } = await import('html-to-image');
 
-      const exportWithSettings = async (foreignObjectRendering: boolean) => html2canvas(mindMapRef.current!, {
-        backgroundColor: null,
-        scale: 2,
-        useCORS: true,
-        foreignObjectRendering,
-        onclone: (clonedDoc) => {
-          const labels = clonedDoc.querySelectorAll('[data-mindmap-label="true"]');
-          labels.forEach((label) => {
-            const el = label as HTMLElement;
-            const text = (el.textContent || '').trim();
-            const hasArabic = /[\u0600-\u06FF]/.test(text);
+      // Target the React Flow pane so we capture the rendered graph reliably.
+      const flowEl = mindMapRef.current.querySelector('.react-flow') as HTMLElement | null;
+      const target = flowEl || mindMapRef.current;
 
-            el.style.direction = hasArabic ? 'rtl' : 'ltr';
-            el.style.textAlign = hasArabic ? 'right' : 'left';
-            el.style.unicodeBidi = 'plaintext';
-            el.style.fontFamily = hasArabic ? 'Cairo, system-ui, sans-serif' : 'system-ui, sans-serif';
-          });
+      const dataUrl = await toPng(target, {
+        backgroundColor: '#ffffff',
+        pixelRatio: 2,
+        cacheBust: true,
+        // Skip UI chrome (zoom controls, legend badge) that shouldn't be in the export.
+        filter: (node) => {
+          if (!(node instanceof HTMLElement)) return true;
+          const cls = node.className?.toString?.() || '';
+          if (cls.includes('react-flow__controls')) return false;
+          if (cls.includes('react-flow__attribution')) return false;
+          if (cls.includes('react-flow__minimap')) return false;
+          return true;
         },
       });
 
-      let canvas: HTMLCanvasElement;
-
-      try {
-        canvas = await exportWithSettings(true);
-      } catch {
-        canvas = await exportWithSettings(false);
-      }
-
       const link = document.createElement('a');
       link.download = `mindmap_${Date.now()}.png`;
-      link.href = canvas.toDataURL('image/png');
+      link.href = dataUrl;
       link.click();
 
       toast.success(t('تم تصدير الخريطة كصورة', 'Mind map exported as image'));

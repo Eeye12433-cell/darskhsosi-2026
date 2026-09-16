@@ -204,6 +204,19 @@
     font-family: 'Cairo', sans-serif;
   }
 
+  /* Smooth subject identity transitions */
+  body,
+  header,
+  aside,
+  .header-banner,
+  .gradient-primary,
+  button,
+  .bg-card,
+  .bg-primary,
+  .bg-secondary {
+    transition: background-color 0.35s ease, border-color 0.35s ease, color 0.35s ease, background-image 0.35s ease;
+  }
+
   /* RTL Support */
   [dir="rtl"] {
     font-family: 'Cairo', sans-serif;
@@ -212,7 +225,7 @@
 
 @layer components {
   .gradient-primary {
-    background: linear-gradient(135deg, hsl(var(--primary)), hsl(174 70% 25%));
+    background: var(--subject-gradient, linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent))));
   }
 
   .gradient-accent {

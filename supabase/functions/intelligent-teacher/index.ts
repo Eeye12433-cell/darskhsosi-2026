@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { sanitizeApiBaseUrl } from "../_shared/safeApiUrl.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -32,8 +33,18 @@ interface RequestBody {
 }
 
 interface ProfileKeys {
-  openai_api_key?: string;
-  gemini_api_key?: string;
+  openai_api_key?: string | null;
+  gemini_api_key?: string | null;
+  custom_api_key?: string | null;
+  custom_base_url?: string | null;
+  custom_model?: string | null;
+}
+
+interface AiCandidate {
+  apiBaseUrl: string;
+  apiKey: string;
+  model: string;
+  label: string;
 }
 
 const jsonResponse = (body: Record<string, unknown>, status = 200) =>
@@ -46,31 +57,24 @@ const validateMessages = (messages: unknown): string | null => {
   if (!Array.isArray(messages) || messages.length === 0) {
     return "Invalid request: messages required";
   }
-
   if (messages.length > MAX_MESSAGES) {
     return "Too many messages in conversation";
   }
-
   for (const message of messages) {
     if (!message || typeof message !== "object") {
       return "Invalid message format";
     }
-
     const { role, content } = message as Partial<Message>;
-
     if (!role || !["system", "user", "assistant"].includes(role)) {
       return "Invalid message role";
     }
-
     if (typeof content !== "string" || content.trim().length === 0) {
       return "Invalid message format";
     }
-
     if (role !== "system" && content.length > MAX_MESSAGE_LENGTH) {
       return "Message content too long";
     }
   }
-
   return null;
 };
 
@@ -88,155 +92,7 @@ const buildSystemPrompt = ({
   const style = learnerProfile?.learningStyle || "visual";
   const lang = learnerProfile?.preferredLanguage === "en" ? "English" : "Arabic";
 
-<<<<<<< HEAD
-    const MAX_MESSAGE_LENGTH = 50000;
-    const MAX_MESSAGES = 100;
-
-    if (messages.length > MAX_MESSAGES) {
-      return new Response(
-        JSON.stringify({ error: 'Too many messages in conversation' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    for (const msg of messages) {
-      if (!msg.role || !msg.content || typeof msg.content !== 'string') {
-        return new Response(
-          JSON.stringify({ error: 'Invalid message format' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      if (msg.role !== 'system' && msg.content.length > MAX_MESSAGE_LENGTH) {
-        return new Response(
-          JSON.stringify({ error: 'Message content too long' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-    }
-    const MAX_MESSAGE_LENGTH = 50000;
-    const MAX_MESSAGES = 100;
-
-    if (messages.length > MAX_MESSAGES) {
-      return new Response(
-        JSON.stringify({ error: "Too many messages in conversation" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
-    }
-
-    for (const msg of messages) {
-      if (
-        !msg ||
-        !msg.role ||
-        !msg.content ||
-        typeof msg.content !== "string"
-      ) {
-        return new Response(
-          JSON.stringify({ error: "Invalid message format" }),
-          {
-            status: 400,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
-      }
-
-      if (!["system", "user", "assistant"].includes(msg.role)) {
-        return new Response(
-          JSON.stringify({ error: "Invalid message role" }),
-          {
-            status: 400,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
-      }
-
-      if (msg.role !== "system" && msg.content.length > MAX_MESSAGE_LENGTH) {
-        return new Response(
-          JSON.stringify({ error: "Message content too long" }),
-          {
-            status: 400,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
-      }
-    }
-
-    // Fetch user's personal API keys only if authenticated
-    let profileData: { openai_api_key?: string; gemini_api_key?: string; custom_api_key?: string; custom_base_url?: string; custom_model?: string } | null = null;
-
-    if (user?.id) {
-      const { data, error } = await supabaseClient
-        .from("profiles")
-        .select("openai_api_key, gemini_api_key, custom_api_key, custom_base_url, custom_model")
-        .eq("id", user.id) // FIXED: profiles table uses id, not user_id
-        .maybeSingle();
-
-      if (error) {
-        console.error("Profile fetch error:", error);
-      } else {
-        profileData = data;
-      }
-    }
-
-    let apiBaseUrl = "https://ai.gateway.lovable.dev/v1/chat/completions";
-    let apiKey = Deno.env.get("LOVABLE_API_KEY");
-    let model = "google/gemini-2.5-flash";
-
-    // Priority 1: User's Custom key
-    if (profileData?.custom_api_key) {
-      apiKey = profileData.custom_api_key;
-      // Default to OpenAI structure if baseUrl isn't provided (many providers are OpenAI compatible like OpenRouter, Together, etc)
-      apiBaseUrl = profileData.custom_base_url || "https://api.openai.com/v1/chat/completions";
-      model = profileData.custom_model || "gpt-4o-mini";
-      console.log(`Using personal Custom key for user ${user?.id}`);
-    }
-    // Priority 2: User's Gemini key
-    else if (profileData?.gemini_api_key) {
-      apiKey = profileData.gemini_api_key;
-      apiBaseUrl = "https://generativelanguage.googleapis.com/v1beta/chat/completions";
-      model = "gemini-1.5-flash";
-      console.log(`Using personal Gemini key for user ${user?.id}`);
-    }
-    // Priority 3: User's OpenAI key
-    else if (profileData?.openai_api_key) {
-      apiKey = profileData.openai_api_key;
-      apiBaseUrl = "https://api.openai.com/v1/chat/completions";
-      model = "gpt-4o-mini";
-      console.log(`Using personal OpenAI key for user ${user?.id}`);
-    } else {
-      console.log("Using default LOVABLE_API_KEY");
-    }
-
-    if (!apiKey) {
-      return new Response(
-        JSON.stringify({
-          error: "AI API key is not configured on the server or in the user profile.",
-        }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
-    }
-
-    const hasFrontEndSystemPrompt =
-      messages.length > 0 && messages[0].role === "system";
-
-    let finalMessages = [...messages];
-
-    const name = learnerProfile?.name || "Learner";
-    const level = learnerProfile?.educationLevel || "university";
-    const style = learnerProfile?.learningStyle || "visual";
-    const lang =
-      learnerProfile?.preferredLanguage === "en" ? "English" : "Arabic";
-
-    if (!hasFrontEndSystemPrompt) {
-      let systemPrompt = `You are "Dars Khusoosi" (درس خصوصي), an expert-level personalized educational companion.
-=======
   let systemPrompt = `You are "Dars Khusoosi" (درس خصوصي), an expert-level personalized educational companion.
->>>>>>> 6199174abcf04f7f6c93b773d5ad8154df72460a
 Your mission is to guide ${name} through their learning journey with a highly adapted teaching style.
 
 STUDENT CONTEXT:
@@ -300,11 +156,7 @@ REFERENCE CONTENT FROM KNOWLEDGE BASE:
 ${materialContent.substring(0, 25000)}`;
   }
 
-  updatedMessages[0] = {
-    ...updatedMessages[0],
-    content: systemPrompt,
-  };
-
+  updatedMessages[0] = { ...updatedMessages[0], content: systemPrompt };
   return updatedMessages;
 };
 
@@ -313,24 +165,23 @@ const getUserIdFromAuthHeader = async (
   supabaseAnonKey: string,
   authHeader: string | null,
 ) => {
-  if (!authHeader?.startsWith("Bearer ")) {
-    return null;
-  }
+  if (!authHeader?.startsWith("Bearer ")) return null;
 
   try {
     const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
     });
+    const {
+      data: { user },
+      error,
+    } = await supabaseClient.auth.getUser();
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data, error } = await supabaseClient.auth.getClaims(token);
-
-    if (error || !data?.claims?.sub) {
-      console.error("Auth claims error:", error);
+    if (error || !user) {
+      console.error("Auth error:", error);
       return null;
     }
 
-    return data.claims.sub;
+    return user.id;
   } catch (error) {
     console.error("Unexpected auth error:", error);
     return null;
@@ -348,8 +199,8 @@ const getProfileKeys = async (
   });
 
   const { data, error } = await supabaseClient
-    .from("profiles")
-    .select("openai_api_key, gemini_api_key")
+    .from("user_api_credentials")
+    .select("openai_api_key, gemini_api_key, custom_api_key, custom_base_url, custom_model")
     .eq("user_id", userId)
     .maybeSingle();
 
@@ -359,6 +210,108 @@ const getProfileKeys = async (
   }
 
   return data;
+};
+
+const buildAiCandidates = ({
+  profileKeys,
+  defaultApiKey,
+}: {
+  profileKeys: ProfileKeys | null;
+  defaultApiKey: string | undefined;
+}): AiCandidate[] => {
+  const candidates: AiCandidate[] = [];
+
+  if (profileKeys?.custom_api_key) {
+    candidates.push({
+      apiBaseUrl: sanitizeApiBaseUrl(profileKeys.custom_base_url, "https://api.openai.com/v1/chat/completions"),
+      apiKey: profileKeys.custom_api_key,
+      model: profileKeys.custom_model || "gpt-4o-mini",
+      label: "custom_api_key",
+    });
+  }
+
+  if (profileKeys?.gemini_api_key) {
+    candidates.push({
+      apiBaseUrl: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+      apiKey: profileKeys.gemini_api_key,
+      model: "gemini-2.0-flash",
+      label: "gemini_api_key",
+    });
+  }
+
+  if (profileKeys?.openai_api_key) {
+    candidates.push({
+      apiBaseUrl: "https://api.openai.com/v1/chat/completions",
+      apiKey: profileKeys.openai_api_key,
+      model: "gpt-4o-mini",
+      label: "openai_api_key",
+    });
+  }
+
+  if (defaultApiKey) {
+    candidates.push({
+      apiBaseUrl: "https://ai.gateway.lovable.dev/v1/chat/completions",
+      apiKey: defaultApiKey,
+      model: "google/gemini-3-flash-preview",
+      label: "lovable_default",
+    });
+  }
+
+  return candidates;
+};
+
+const requestAiResponse = async ({
+  candidates,
+  messages,
+}: {
+  candidates: AiCandidate[];
+  messages: Message[];
+}) => {
+  let lastFailure: { status: number; text: string; label: string } | null = null;
+
+  for (const candidate of candidates) {
+    try {
+      console.log(`Sending request to ${candidate.apiBaseUrl} using ${candidate.model} (${candidate.label})`);
+
+      const response = await fetch(candidate.apiBaseUrl, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${candidate.apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: candidate.model,
+          messages,
+          stream: true,
+        }),
+      });
+
+      if (response.ok) {
+        return { response, lastFailure };
+      }
+
+      const errorText = await response.text();
+      console.error(`AI service error (${candidate.label}):`, response.status, errorText);
+      lastFailure = { status: response.status, text: errorText, label: candidate.label };
+
+      if (candidate.label === "lovable_default") {
+        break;
+      }
+    } catch (error) {
+      console.error(`AI request crashed (${candidate.label}):`, error);
+      lastFailure = {
+        status: 500,
+        text: error instanceof Error ? error.message : "Unknown request error",
+        label: candidate.label,
+      };
+
+      if (candidate.label === "lovable_default") {
+        break;
+      }
+    }
+  }
+
+  return { response: null, lastFailure };
 };
 
 serve(async (req) => {
@@ -381,7 +334,6 @@ serve(async (req) => {
 
     const body = (await req.json()) as RequestBody;
     const validationError = validateMessages(body.messages);
-
     if (validationError) {
       return jsonResponse({ error: validationError }, 400);
     }
@@ -395,29 +347,13 @@ serve(async (req) => {
       profileKeys = await getProfileKeys(supabaseUrl, supabaseAnonKey, authHeader, userId);
     }
 
-    let apiBaseUrl = "https://ai.gateway.lovable.dev/v1/chat/completions";
-    let apiKey = Deno.env.get("LOVABLE_API_KEY");
-    let model = "google/gemini-2.5-flash";
+    const aiCandidates = buildAiCandidates({
+      profileKeys,
+      defaultApiKey: Deno.env.get("LOVABLE_API_KEY"),
+    });
 
-    if (profileKeys?.gemini_api_key) {
-      apiKey = profileKeys.gemini_api_key;
-      apiBaseUrl = "https://generativelanguage.googleapis.com/v1beta/chat/completions";
-      model = "gemini-1.5-flash";
-      console.log(`Using personal Gemini key for user ${userId}`);
-    } else if (profileKeys?.openai_api_key) {
-      apiKey = profileKeys.openai_api_key;
-      apiBaseUrl = "https://api.openai.com/v1/chat/completions";
-      model = "gpt-4o-mini";
-      console.log(`Using personal OpenAI key for user ${userId}`);
-    } else {
-      console.log(userId ? `Using default LOVABLE_API_KEY for user ${userId}` : "Using default LOVABLE_API_KEY for guest request");
-    }
-
-    if (!apiKey) {
-      return jsonResponse(
-        { error: "AI API key is not configured on the server." },
-        500,
-      );
+    if (aiCandidates.length === 0) {
+      return jsonResponse({ error: "AI API key is not configured on the server." }, 500);
     }
 
     const finalMessages = messages[0]?.role === "system"
@@ -430,55 +366,24 @@ serve(async (req) => {
           ...messages,
         ];
 
-    console.log(
-      `Sending request to AI at ${apiBaseUrl} using model ${model}${userId ? ` for user ${userId}` : " for guest request"}`,
-    );
-
-    const aiResponse = await fetch(apiBaseUrl, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model,
-        messages: finalMessages,
-        stream: true,
-      }),
+    const { response: aiResponse, lastFailure } = await requestAiResponse({
+      candidates: aiCandidates,
+      messages: finalMessages,
     });
 
-    if (!aiResponse.ok) {
-      const errorText = await aiResponse.text();
-      console.error("AI service error:", aiResponse.status, errorText);
-
-      if (aiResponse.status === 401) {
-        return jsonResponse(
-          { error: "AI provider authorization failed. Please verify the API key." },
-          500,
-        );
+    if (!aiResponse) {
+      if (lastFailure?.status === 429) {
+        return jsonResponse({ error: "Rate limit exceeded. Please try again." }, 429);
+      }
+      if (lastFailure?.status === 402) {
+        return jsonResponse({ error: "Usage limit reached." }, 402);
+      }
+      if (lastFailure?.status === 401) {
+        return jsonResponse({ error: "The configured personal AI key is invalid. Please review it in your profile settings." }, 401);
       }
 
-      if (aiResponse.status === 429) {
-        return jsonResponse(
-          { error: "Rate limit exceeded. Please try again in a moment." },
-          429,
-        );
-      }
-
-      if (aiResponse.status === 402) {
-        return jsonResponse(
-          { error: "Usage limit reached. Please check your account." },
-          402,
-        );
-      }
-
-      return jsonResponse(
-        {
-          error: "AI service temporarily unavailable",
-          details: errorText,
-        },
-        500,
-      );
+      console.error("All AI candidates failed:", lastFailure?.label, lastFailure?.status, lastFailure?.text);
+      return jsonResponse({ error: "AI service temporarily unavailable" }, 500);
     }
 
     return new Response(aiResponse.body, {
@@ -490,7 +395,7 @@ serve(async (req) => {
       },
     });
   } catch (error) {
-    console.error("Error in intelligent-teacher function:", error);
+    console.error("Error in intelligent-teacher:", error);
     return jsonResponse({ error: "Unable to process request. Please try again." }, 500);
   }
 });

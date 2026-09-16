@@ -55,7 +55,8 @@ const WebLinkExplainer: React.FC<WebLinkExplainerProps> = ({ language, profile }
           url,
           language,
           educationLevel: profile?.education_level || 'high',
-          learningStyle: profile?.learning_style || 'visual'
+          learningStyle: profile?.learning_style || 'visual',
+          subject: profile?.subject || 'general'
         }
       });
 
@@ -76,16 +77,16 @@ const WebLinkExplainer: React.FC<WebLinkExplainerProps> = ({ language, profile }
   };
 
   return (
-    <div className="flex flex-col h-full p-3 sm:p-4 md:p-6 gsap-theme-animate">
-      <Card className="flex-1 flex flex-col">
-        <CardHeader className="border-b">
-          <div className="flex items-center justify-between gap-2">
+    <div className="flex flex-col h-full min-h-0 overflow-hidden p-3 sm:p-4 md:p-6 gsap-theme-animate">
+      <Card className="flex-1 min-h-0 flex flex-col overflow-hidden">
+        <CardHeader className="border-b shrink-0 p-3 sm:p-6">
+          <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <CardTitle className="flex items-center gap-2">
-                <Globe className="w-6 h-6 text-primary" />
+              <CardTitle className="flex items-center gap-2 text-base sm:text-xl">
+                <Globe className="w-5 h-5 sm:w-6 sm:h-6 text-primary shrink-0" />
                 {t('شرح الروابط والمواقع', 'Web Link Explainer')}
               </CardTitle>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 {t(
                   'أدخل أي رابط لموقع أو مقال وسيقوم الذكاء الاصطناعي بتحليله وشرحه لك',
                   'Enter any website or article link and AI will analyze and explain it for you'
@@ -104,9 +105,9 @@ const WebLinkExplainer: React.FC<WebLinkExplainerProps> = ({ language, profile }
           </div>
         </CardHeader>
 
-        <CardContent className="flex-1 flex flex-col gap-4 pt-4">
+        <CardContent className="flex-1 min-h-0 flex flex-col gap-3 sm:gap-4 p-3 sm:p-6 pt-3 sm:pt-4">
           {/* URL Input */}
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2 shrink-0">
             <div className="relative flex-1">
               <Link2 className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
@@ -118,7 +119,7 @@ const WebLinkExplainer: React.FC<WebLinkExplainerProps> = ({ language, profile }
                 onKeyDown={(e) => e.key === 'Enter' && handleExplain()}
               />
             </div>
-            <Button onClick={handleExplain} disabled={isLoading}>
+            <Button onClick={handleExplain} disabled={isLoading} className="w-full sm:w-auto shrink-0">
               {isLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
@@ -132,7 +133,7 @@ const WebLinkExplainer: React.FC<WebLinkExplainerProps> = ({ language, profile }
 
           {/* Explanation Result */}
           {explanation && (
-            <ScrollArea className="flex-1 border rounded-lg p-4 bg-muted/30">
+            <ScrollArea className="flex-1 min-h-0 basis-0 border rounded-lg p-3 sm:p-4 bg-muted/30">
               <div className="flex items-center justify-between gap-2 mb-4 pb-2 border-b">
                 <div className="flex items-center gap-2 min-w-0">
                   <ExternalLink className="w-4 h-4 text-primary shrink-0" />

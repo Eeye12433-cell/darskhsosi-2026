@@ -1,65 +1,71 @@
 import { useEffect, useRef } from 'react';
-import { getSubjectTheme, Subject } from '@/utils/subjectColors';
+import { getSubjectTheme, getSubjectTokens, Subject } from '@/utils/subjectColors';
 
 /**
  * Hook that applies subject-specific CSS custom properties to the document root.
- * This enables dynamic theming across the entire application based on the selected subject.
- * 
+ * Every subject drives the full app palette (primary, accent, ring, header, sidebar, charts)
+ * in both light and dark mode, giving each subject a distinct visual identity.
+ *
  * IMPORTANT: Only call this hook when the profile is complete to avoid
  * CSS variable changes interfering with Radix UI components during mounting.
  */
 export const useSubjectTheme = (subject: Subject | string | null | undefined) => {
-  const lastSubject = useRef<string | null>(null);
+  const appliedKeys = useRef<string[]>([]);
 
   useEffect(() => {
-    // Skip if subject is null/undefined (profile not ready)
-    if (!subject) {
-      return;
-    }
+    if (!subject) return;
 
-    // Skip if subject hasn't changed (prevents unnecessary CSS updates)
-    if (lastSubject.current === subject) {
-      return;
-    }
-    lastSubject.current = subject;
-
-    const theme = getSubjectTheme(subject);
     const root = document.documentElement;
+    const theme = getSubjectTheme(subject);
 
-    // Parse HSL values from the theme
     const parseHSL = (hslString: string): string => {
-      // Extract h, s%, l% from "hsl(h, s%, l%)"
       const match = hslString.match(/hsl\((\d+),?\s*(\d+)%?,?\s*(\d+)%?\)/);
-      if (match) {
-        return `${match[1]} ${match[2]}% ${match[3]}%`;
-      }
-      return '174 84% 32%'; // fallback
+      if (match) return `${match[1]} ${match[2]}% ${match[3]}%`;
+      return '174 84% 32%';
     };
 
-    const primaryHSL = parseHSL(theme.primary);
-    const secondaryHSL = parseHSL(theme.secondary);
-    const accentHSL = parseHSL(theme.accent);
+    let frame = 0;
 
-    // Use requestAnimationFrame to batch CSS updates and avoid layout thrashing
-    requestAnimationFrame(() => {
-      root.style.setProperty('--subject-primary', primaryHSL);
-      root.style.setProperty('--subject-secondary', secondaryHSL);
-      root.style.setProperty('--subject-accent', accentHSL);
-      root.style.setProperty('--subject-gradient', theme.gradient);
-      root.style.setProperty('--ring', primaryHSL);
-      document.body.dataset.subject = theme.id;
+    const apply = () => {
+      const isDark = root.classList.contains('dark');
+      const tokens = {
+        '--subject-primary': parseHSL(theme.primary),
+        '--subject-secondary': parseHSL(theme.secondary),
+        '--subject-accent': parseHSL(theme.accent),
+        ...getSubjectTokens(theme.id, isDark),
+      };
+
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        Object.entries(tokens).forEach(([key, value]) => root.style.setProperty(key, value));
+        appliedKeys.current = Object.keys(tokens);
+        document.body.dataset.subject = theme.id;
+      });
+    };
+
+    apply();
+
+    // Re-apply when the light/dark class changes
+    const observer = new MutationObserver(mutations => {
+      if (mutations.some(m => m.attributeName === 'class')) apply();
     });
+    observer.observe(root, { attributes: true, attributeFilter: ['class'] });
 
     return () => {
-      // Cleanup on unmount
-      root.style.removeProperty('--subject-primary');
-      root.style.removeProperty('--subject-secondary');
-      root.style.removeProperty('--subject-accent');
-      root.style.removeProperty('--subject-gradient');
-      delete document.body.dataset.subject;
-      lastSubject.current = null;
+      observer.disconnect();
+      cancelAnimationFrame(frame);
     };
   }, [subject]);
+
+  // Clean up all injected tokens on unmount
+  useEffect(() => {
+    return () => {
+      const root = document.documentElement;
+      appliedKeys.current.forEach(key => root.style.removeProperty(key));
+      appliedKeys.current = [];
+      delete document.body.dataset.subject;
+    };
+  }, []);
 };
 
 export default useSubjectTheme;

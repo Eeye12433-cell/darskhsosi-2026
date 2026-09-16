@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Seo from '@/components/Seo';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { 
@@ -94,6 +95,11 @@ const Landing: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background overflow-hidden" dir={dir}>
+      <Seo
+        title="منصة درس خصوصي — تعلّم مجاني بالذكاء الاصطناعي"
+        description="منصة تعليمية مجانية بالكامل تعتمد على الذكاء الاصطناعي: معلم ذكي، خرائط ذهنية، تبسيط الدروس، بطاقات مراجعة، واختبارات فهم لكل طالب."
+        path="/"
+      />
       {/* Navbar */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">

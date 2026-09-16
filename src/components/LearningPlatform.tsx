@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserRole } from '@/hooks/useUserRole';
+import ParentDashboard from './parent/ParentDashboard';
+
 import { useProfile } from '@/hooks/useProfile';
 import { useSubjectTheme } from '@/hooks/useSubjectTheme';
 import ProfileSetup from './ProfileSetup';
@@ -13,7 +16,7 @@ import { Loader2 } from 'lucide-react';
 import { Subject } from '@/utils/subjectColors';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
-export type SidebarFeature = 'teacher' | 'upload' | 'mindmap' | 'simplify' | 'summary' | 'scientist' | 'video' | 'test' | 'progress' | 'weblink' | 'studyplan' | 'projects' | 'classroom' | 'flashcards' | 'kids-games' | 'profile' | 'about';
+export type SidebarFeature = 'teacher' | 'upload' | 'mindmap' | 'simplify' | 'summary' | 'scientist' | 'video' | 'test' | 'questionbank' | 'moe-library' | 'progress' | 'weblink' | 'studyplan' | 'projects' | 'classroom' | 'flashcards' | 'kids-games' | 'parent-link' | 'profile' | 'about';
 const LearningPlatform: React.FC = () => {
   const navigate = useNavigate();
   const {
@@ -28,6 +31,8 @@ const LearningPlatform: React.FC = () => {
     fetchProfile,
     updateProfile
   } = useProfile();
+  const { isParent, loading: roleLoading } = useUserRole();
+
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeFeature, setActiveFeature] = useState<SidebarFeature>(() => {
@@ -81,7 +86,7 @@ const LearningPlatform: React.FC = () => {
       });
     }
   };
-  if (authLoading || profileLoading) {
+  if (authLoading || profileLoading || roleLoading) {
     return <div className="min-h-screen flex items-center justify-center bg-background">
       <Loader2 className="w-8 h-8 animate-spin text-primary" />
     </div>;
@@ -89,9 +94,13 @@ const LearningPlatform: React.FC = () => {
   if (!user) {
     return null;
   }
+  if (isParent) {
+    return <ParentDashboard language={language} onSignOut={signOut} />;
+  }
   if (!isProfileComplete) {
     return <ProfileSetup onComplete={handleProfileComplete} currentLanguage={language} setLanguage={handleLanguageChange} />;
   }
+
   return <div className="flex flex-col h-screen w-full overflow-hidden">
     {showOnboarding && isProfileComplete && (
       <OnboardingTour language={language} onComplete={() => setShowOnboarding(false)} onNavigate={feature => setActiveFeature(feature as SidebarFeature)} />

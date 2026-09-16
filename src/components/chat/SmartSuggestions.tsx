@@ -1,18 +1,23 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Lightbulb } from 'lucide-react';
+import { getSubjectTheme } from '@/utils/subjectColors';
 
 interface SmartSuggestionsProps {
   language: 'ar' | 'en';
   personaId: string;
+  subject?: string;
   onSuggestionClick: (suggestion: string) => void;
 }
 
 const SmartSuggestions: React.FC<SmartSuggestionsProps> = ({
   language,
   personaId,
+  subject = 'general',
   onSuggestionClick
 }) => {
+  const subjectTheme = getSubjectTheme(subject);
+  const subjectName = language === 'ar' ? subjectTheme.nameAr : subjectTheme.nameEn;
   const getSuggestions = (): { ar: string; en: string }[] => {
     const suggestions: Record<string, { ar: string; en: string }[]> = {
       teacher: [
@@ -77,7 +82,12 @@ const SmartSuggestions: React.FC<SmartSuggestionsProps> = ({
       ],
     };
 
-    return suggestions[personaId] || suggestions.teacher;
+    const base = suggestions[personaId] || suggestions.teacher;
+    const subjectSpecific = [
+      { ar: `ما أهم موضوع يجب أن أتقنه في ${subjectName}؟`, en: `What is the most important topic to master in ${subjectName}?` },
+      { ar: `أعطني تمريناً في ${subjectName}`, en: `Give me an exercise in ${subjectName}` },
+    ];
+    return [...subjectSpecific, ...base];
   };
 
   const suggestions = getSuggestions();

@@ -1,5 +1,6 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Profile, useProfile } from '@/hooks/useProfile';
+import { useApiCredentials } from '@/hooks/useApiCredentials';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -38,6 +39,7 @@ interface ProfilePageProps {
 
 const ProfilePage: React.FC<ProfilePageProps> = ({ profile, language }) => {
   const { updateProfile } = useProfile();
+  const { credentials, updateCredentials } = useApiCredentials();
   const { signOut } = useAuth();
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -65,11 +67,11 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ profile, language }) => {
         aiPersona: profile.ai_persona || 'teacher',
         speakingStyle: profile.speaking_style || 'formal_ar',
         knowledgeRatio: profile.knowledge_ratio ?? 50,
-        openaiApiKey: profile.openai_api_key || '',
-        geminiApiKey: profile.gemini_api_key || '',
-        customApiKey: profile.custom_api_key || '',
-        customBaseUrl: profile.custom_base_url || '',
-        customModel: profile.custom_model || '',
+        openaiApiKey: '',
+        geminiApiKey: '',
+        customApiKey: '',
+        customBaseUrl: '',
+        customModel: '',
       };
     }
     return {
@@ -96,6 +98,20 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ profile, language }) => {
       customModel: '',
     };
   });
+
+  // Populate API key fields once credentials are loaded from the secure table
+  useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      openaiApiKey: credentials.openai_api_key || '',
+      geminiApiKey: credentials.gemini_api_key || '',
+      customApiKey: credentials.custom_api_key || '',
+      customBaseUrl: credentials.custom_base_url || '',
+      customModel: credentials.custom_model || '',
+    }));
+  }, [credentials]);
+
+
 
   const t = (key: string) => {
     const translations: Record<string, Record<string, string>> = {
@@ -190,6 +206,9 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ profile, language }) => {
       ai_persona: formData.aiPersona as Profile['ai_persona'],
       speaking_style: formData.speakingStyle as Profile['speaking_style'],
       knowledge_ratio: formData.knowledgeRatio,
+    });
+
+    const { error: credError } = await updateCredentials({
       openai_api_key: formData.openaiApiKey || null,
       gemini_api_key: formData.geminiApiKey || null,
       custom_api_key: formData.customApiKey || null,
@@ -198,9 +217,10 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ profile, language }) => {
     });
 
     setLoading(false);
-    if (error) toast.error(t('error.save'));
+    if (error || credError) toast.error(t('error.save'));
     else toast.success(t('success.save'));
   };
+
 
   return (
     <div className="h-full overflow-y-auto p-3 sm:p-4 md:p-6 custom-scrollbar gsap-theme-animate">

@@ -12,13 +12,10 @@ import {
     Clock,
     Shield,
     Presentation,
-<<<<<<< HEAD
     CheckCircle2,
     Loader2,
     PlusCircle,
     Trash2
-=======
->>>>>>> 840416d5fa4e19429fb94f875e83dcec2f29699e
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -121,7 +118,6 @@ const VirtualClassroom: React.FC<VirtualClassroomProps> = ({ language }) => {
         window.open(link, '_blank');
     };
 
-<<<<<<< HEAD
     const handleCreateMeeting = async () => {
         if (!newMeeting.title || !newMeeting.meeting_link || !newMeeting.start_time) {
             toast.error(t('invalidLink'));
@@ -149,9 +145,6 @@ const VirtualClassroom: React.FC<VirtualClassroomProps> = ({ language }) => {
         const { error } = await deleteMeeting(id);
         if (!error) toast.success(language === 'ar' ? 'تم حذف الجلسة' : 'Session deleted');
     };
-=======
-    const upcomingSessions: { id: number; title: string; teacher: string; time: string; duration: string }[] = [];
->>>>>>> 840416d5fa4e19429fb94f875e83dcec2f29699e
 
     return (
         <div className="h-full overflow-y-auto p-4 md:p-6 custom-scrollbar gsap-theme-animate">
@@ -321,55 +314,6 @@ const VirtualClassroom: React.FC<VirtualClassroomProps> = ({ language }) => {
                         </div>
                     </Card>
                 </div>
-
-<<<<<<< HEAD
-                {/* Teachers List (Placeholder linked to data if needed, but currently keeping UI logic) */}
-                <div className="space-y-4">
-                    <h2 className="text-xl font-bold flex items-center gap-2">
-                        <MessageSquare className="w-5 h-5 text-primary" />
-                        {t('recommendTeachers')}
-                    </h2>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        {[1, 2, 3, 4].map((i) => (
-                            <Card key={i} className="p-4 hover:shadow-md transition-all duration-300 group">
-                                <div className="flex items-center gap-4 mb-4">
-                                    <div className="relative">
-                                        <div className="w-12 h-12 rounded-full bg-accent flex items-center justify-center text-lg font-bold text-accent-foreground">
-                                            {['A', 'S', 'M', 'K'][i - 1]}
-                                        </div>
-                                        <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></div>
-                                    </div>
-                                    <div>
-                                        <h4 className="font-bold text-sm">
-                                            {language === 'ar'
-                                                ? ['أ. سارة', 'أ. محمد', 'د. ليلى', 'أ. خالد'][i - 1]
-                                                : ['Ms. Sara', 'Mr. Mohamed', 'Dr. Leila', 'Mr. Khaled'][i - 1]}
-                                        </h4>
-                                        <p className="text-xs text-muted-foreground">
-                                            {language === 'ar'
-                                                ? ['اللغة العربية', 'الرياضيات', 'العلوم', 'الإنجليزية'][i - 1]
-                                                : ['Arabic', 'Mathematics', 'Science', 'English'][i - 1]}
-                                        </p>
-                                    </div>
-                                </div>
-                                <Button variant="outline" className="w-full text-xs h-9 hover:bg-primary hover:text-white transition-all duration-300">
-                                    {language === 'ar' ? 'طلب انضمام' : 'Request Join'}
-                                </Button>
-                            </Card>
-                        ))}
-                    </div>
-                </div>
-=======
-                {/* Info Section */}
-                <Card className="p-6 text-center">
-                    <Presentation className="w-12 h-12 mx-auto mb-3 text-primary opacity-30" />
-                    <p className="text-muted-foreground text-sm">
-                        {language === 'ar' 
-                            ? 'يمكنك الانضمام لأي جلسة تعليمية عبر لصق رابط الاجتماع أعلاه. ندعم Zoom وGoogle Meet وMicrosoft Teams.'
-                            : 'You can join any learning session by pasting the meeting link above. We support Zoom, Google Meet, and Microsoft Teams.'}
-                    </p>
-                </Card>
->>>>>>> 840416d5fa4e19429fb94f875e83dcec2f29699e
             </div>
         </div>
     );

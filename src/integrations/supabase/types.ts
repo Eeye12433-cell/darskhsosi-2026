@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.1"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           attachments: string[] | null
           content: string
+          conversation_id: string | null
           created_at: string
           id: string
           role: string
@@ -27,6 +28,7 @@ export type Database = {
         Insert: {
           attachments?: string[] | null
           content: string
+          conversation_id?: string | null
           created_at?: string
           id?: string
           role: string
@@ -36,6 +38,7 @@ export type Database = {
         Update: {
           attachments?: string[] | null
           content?: string
+          conversation_id?: string | null
           created_at?: string
           id?: string
           role?: string
@@ -44,6 +47,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "chat_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "chat_messages_subject_id_fkey"
             columns: ["subject_id"]
             isOneToOne: false
@@ -51,6 +61,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      conversations: {
+        Row: {
+          created_at: string
+          feature_id: string
+          id: string
+          is_active: boolean
+          subject: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          feature_id: string
+          id?: string
+          is_active?: boolean
+          subject?: string
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          feature_id?: string
+          id?: string
+          is_active?: boolean
+          subject?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       flashcard_sets: {
         Row: {
@@ -90,6 +133,57 @@ export type Database = {
           },
         ]
       }
+      parent_invite_codes: {
+        Row: {
+          code: string
+          created_at: string
+          expires_at: string
+          id: string
+          student_id: string
+          used_at: string | null
+          used_by: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          student_id: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          student_id?: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Relationships: []
+      }
+      parent_links: {
+        Row: {
+          created_at: string
+          id: string
+          parent_id: string
+          student_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          parent_id: string
+          student_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          parent_id?: string
+          student_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           ai_persona: string | null
@@ -98,18 +192,23 @@ export type Database = {
           birth_date: string | null
           created_at: string
           education_level: string | null
+          goals: string | null
+          hobbies: string | null
           id: string
           interests: string[] | null
           knowledge_ratio: number | null
           learning_languages: string[] | null
           learning_style: string | null
+          learning_styles: string[] | null
           name: string
           preferred_language: string | null
           speaking_style: string | null
+          strengths: string | null
           study_target: string | null
           subject: string | null
           updated_at: string
           user_id: string
+          weaknesses: string | null
         }
         Insert: {
           ai_persona?: string | null
@@ -118,18 +217,23 @@ export type Database = {
           birth_date?: string | null
           created_at?: string
           education_level?: string | null
+          goals?: string | null
+          hobbies?: string | null
           id?: string
           interests?: string[] | null
           knowledge_ratio?: number | null
           learning_languages?: string[] | null
           learning_style?: string | null
+          learning_styles?: string[] | null
           name: string
           preferred_language?: string | null
           speaking_style?: string | null
+          strengths?: string | null
           study_target?: string | null
           subject?: string | null
           updated_at?: string
           user_id: string
+          weaknesses?: string | null
         }
         Update: {
           ai_persona?: string | null
@@ -138,16 +242,72 @@ export type Database = {
           birth_date?: string | null
           created_at?: string
           education_level?: string | null
+          goals?: string | null
+          hobbies?: string | null
           id?: string
           interests?: string[] | null
           knowledge_ratio?: number | null
           learning_languages?: string[] | null
           learning_style?: string | null
+          learning_styles?: string[] | null
           name?: string
           preferred_language?: string | null
           speaking_style?: string | null
+          strengths?: string | null
           study_target?: string | null
           subject?: string | null
+          updated_at?: string
+          user_id?: string
+          weaknesses?: string | null
+        }
+        Relationships: []
+      }
+      question_bank: {
+        Row: {
+          correct_index: number
+          created_at: string
+          difficulty: string
+          explanation: string | null
+          id: string
+          is_favorite: boolean
+          options: Json
+          question: string
+          subject: string
+          times_correct: number
+          times_wrong: number
+          topic: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          correct_index?: number
+          created_at?: string
+          difficulty?: string
+          explanation?: string | null
+          id?: string
+          is_favorite?: boolean
+          options?: Json
+          question: string
+          subject?: string
+          times_correct?: number
+          times_wrong?: number
+          topic?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          correct_index?: number
+          created_at?: string
+          difficulty?: string
+          explanation?: string | null
+          id?: string
+          is_favorite?: boolean
+          options?: Json
+          question?: string
+          subject?: string
+          times_correct?: number
+          times_wrong?: number
+          topic?: string
           updated_at?: string
           user_id?: string
         }
@@ -243,15 +403,83 @@ export type Database = {
         }
         Relationships: []
       }
+      user_api_credentials: {
+        Row: {
+          created_at: string
+          custom_api_key: string | null
+          custom_base_url: string | null
+          custom_model: string | null
+          gemini_api_key: string | null
+          id: string
+          openai_api_key: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          custom_api_key?: string | null
+          custom_base_url?: string | null
+          custom_model?: string | null
+          gemini_api_key?: string | null
+          id?: string
+          openai_api_key?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          custom_api_key?: string | null
+          custom_base_url?: string | null
+          custom_model?: string | null
+          gemini_api_key?: string | null
+          id?: string
+          openai_api_key?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_parent_of: {
+        Args: { _parent_id: string; _student_id: string }
+        Returns: boolean
+      }
+      redeem_parent_invite: { Args: { _code: string }; Returns: string }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "student" | "parent"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -267,12 +495,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -296,11 +524,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -321,11 +549,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -346,11 +574,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -363,11 +591,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -378,6 +606,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["student", "parent"],
+    },
   },
 } as const

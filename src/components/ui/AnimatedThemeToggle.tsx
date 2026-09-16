@@ -86,6 +86,7 @@ const AnimatedThemeToggle: React.FC<AnimatedThemeToggleProps> = ({ className }) 
       ref={buttonRef}
       variant="ghost"
       size="icon"
+      aria-label="Toggle theme"
       onClick={handleClick}
       className={cn(
         "rounded-full relative overflow-visible transition-all duration-300",

@@ -1,20 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Seo from '@/components/Seo';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { GraduationCap, Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { GraduationCap, Mail, Lock, Eye, EyeOff, Loader2, Users } from 'lucide-react';
 
 const Auth: React.FC = () => {
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState<'student' | 'parent'>('student');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
+
 
   useEffect(() => {
     // Check if user is already logged in
@@ -68,7 +71,7 @@ const Auth: React.FC = () => {
           }
         }
       } else {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -84,8 +87,15 @@ const Auth: React.FC = () => {
             toast.error('حدث خطأ أثناء إنشاء الحساب. حاول مرة أخرى.');
           }
         } else {
+          if (data.user) {
+            const { error: roleError } = await supabase
+              .from('user_roles')
+              .insert({ user_id: data.user.id, role });
+            if (roleError) console.error('Role assignment failed:', roleError);
+          }
           toast.success('تم إنشاء الحساب بنجاح!');
         }
+
       }
     } catch (error) {
       toast.error('حدث خطأ غير متوقع. حاول مرة أخرى.');
@@ -105,6 +115,11 @@ const Auth: React.FC = () => {
 
   return (
     <div className="min-h-screen gradient-warm geometric-pattern flex items-center justify-center p-4">
+      <Seo
+        title="تسجيل الدخول — منصة درس خصوصي"
+        description="سجّل الدخول أو أنشئ حساباً مجانياً في منصة درس خصوصي للوصول إلى المعلم الذكي وأدوات التعلم بالذكاء الاصطناعي."
+        path="/auth"
+      />
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8 animate-fade-in">
@@ -123,6 +138,36 @@ const Auth: React.FC = () => {
 
           {/* Email Auth Form */}
           <form onSubmit={handleEmailAuth} className="space-y-4">
+            {!isLogin && (
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Users className="w-4 h-4 text-primary" />
+                  نوع الحساب
+                </Label>
+                <div className="grid grid-cols-2 gap-3">
+                  {([
+                    { value: 'student' as const, label: 'طالب', hint: 'تعلّم بالذكاء الاصطناعي' },
+                    { value: 'parent' as const, label: 'ولي أمر', hint: 'متابعة تقدّم المتعلم' },
+                  ]).map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setRole(opt.value)}
+                      disabled={loading}
+                      className={`rounded-xl border p-3 text-center transition-colors ${
+                        role === opt.value
+                          ? 'border-primary bg-primary/10 text-foreground'
+                          : 'border-border hover:bg-muted/50 text-muted-foreground'
+                      }`}
+                    >
+                      <span className="block font-semibold">{opt.label}</span>
+                      <span className="block text-xs mt-1">{opt.hint}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label htmlFor="email" className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-primary" />

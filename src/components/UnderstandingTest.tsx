@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import { ClipboardCheck, Loader2, Sparkles, BookOpen, CheckCircle, XCircle, Timer, Settings2, Trophy, RotateCcw, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useProfile } from '@/hooks/useProfile';
+import { getSubjectName } from '@/utils/subjectColors';
 import { useUploadedMaterials } from '@/hooks/useUploadedMaterials';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
@@ -227,7 +228,7 @@ const UnderstandingTest: React.FC<UnderstandingTestProps> = ({ language }) => {
           messages: [
             {
               role: 'system',
-              content: `أنت مُقيّم تعليمي متخصص. مهمتك إنشاء اختبار دقيق ومتنوع.
+              content: `أنت مُقيّم تعليمي متخصص في مادة (${getSubjectName(profile?.subject || 'general', 'ar')}). مهمتك إنشاء اختبار دقيق ومتنوع ضمن هذه المادة فقط، بمصطلحاتها وأمثلتها.
 
 القواعد الصارمة:
 1. ${questionTypeInstruction}

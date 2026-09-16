@@ -10,14 +10,14 @@ export interface ChatMessage {
   content: string;
   attachments: string[] | null;
   created_at: string;
+  conversation_id?: string | null;
 }
 
 const isValidUUID = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
 
-export const useChatMessages = (subjectId?: string | null) => {
+export const useChatMessages = (subjectId?: string | null, conversationId?: string | null) => {
   const { user } = useAuth();
   
-  // If subjectId is provided but not a valid UUID, skip DB operations (local-only mode)
   const isLocalOnly = !!subjectId && !isValidUUID(subjectId);
   
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -33,22 +33,24 @@ export const useChatMessages = (subjectId?: string | null) => {
       setMessages([]);
       setLoading(false);
     }
-  }, [user, subjectId]);
+  }, [user, subjectId, conversationId]);
 
   const fetchMessages = async () => {
     if (!user) return;
 
     try {
-      let query = supabase
+      let query = (supabase as any)
         .from('chat_messages')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: true });
 
-      if (subjectId) {
+      if (conversationId) {
+        query = query.eq('conversation_id', conversationId);
+      } else if (subjectId) {
         query = query.eq('subject_id', subjectId);
       } else {
-        query = query.is('subject_id', null);
+        query = query.is('subject_id', null).is('conversation_id', null);
       }
 
       const { data, error } = await query;
@@ -64,7 +66,7 @@ export const useChatMessages = (subjectId?: string | null) => {
 
   const subscribeToMessages = () => {
     const channel = supabase
-      .channel('chat-messages')
+      .channel(`chat-messages-${conversationId || subjectId || 'general'}`)
       .on(
         'postgres_changes',
         {
@@ -75,16 +77,12 @@ export const useChatMessages = (subjectId?: string | null) => {
         },
         (payload) => {
           const newMessage = payload.new as ChatMessage;
-          // Only add if it matches current subject filter
-          if (subjectId === undefined || newMessage.subject_id === subjectId) {
-            setMessages((prev) => {
-              // Check if message already exists
-              if (prev.some(m => m.id === newMessage.id)) {
-                return prev;
-              }
-              return [...prev, newMessage];
-            });
-          }
+          if (conversationId && newMessage.conversation_id !== conversationId) return;
+          if (!conversationId && subjectId !== undefined && newMessage.subject_id !== subjectId) return;
+          setMessages((prev) => {
+            if (prev.some(m => m.id === newMessage.id)) return prev;
+            return [...prev, newMessage];
+          });
         }
       )
       .subscribe();
@@ -99,10 +97,10 @@ export const useChatMessages = (subjectId?: string | null) => {
     content: string; 
     subject_id?: string | null;
     attachments?: string[];
+    conversation_id?: string | null;
   }) => {
     if (!user) return { error: new Error('Not authenticated') };
 
-    // For local-only mode, just add to local state without DB
     if (isLocalOnly) {
       const localMessage: ChatMessage = {
         id: crypto.randomUUID(),
@@ -112,13 +110,14 @@ export const useChatMessages = (subjectId?: string | null) => {
         subject_id: message.subject_id || null,
         attachments: message.attachments || null,
         created_at: new Date().toISOString(),
+        conversation_id: message.conversation_id || null,
       };
       setMessages(prev => [...prev, localMessage]);
       return { data: localMessage, error: null };
     }
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('chat_messages')
         .insert({
           user_id: user.id,
@@ -126,6 +125,7 @@ export const useChatMessages = (subjectId?: string | null) => {
           content: message.content,
           subject_id: message.subject_id || null,
           attachments: message.attachments || null,
+          conversation_id: message.conversation_id || conversationId || null,
         })
         .select()
         .single();
